@@ -5,6 +5,10 @@ import Dashboard from './pages/Dashboard'
 import RepositoryAnalysis from './pages/RepositoryAnalysis'
 import CodeReview from './pages/CodeReview'
 import ErrorExplainer from './pages/ErrorExplainer'
+import BugPrediction from './pages/BugPrediction'
+import Documentation from './pages/Documentation'
+import CodeSearch from './pages/CodeSearch'
+import HealthDashboard from './pages/HealthDashboard'
 
 function App() {
   return (
@@ -16,6 +20,10 @@ function App() {
           <Route path="/analysis" element={<RepositoryAnalysis />} />
           <Route path="/review" element={<CodeReview />} />
           <Route path="/explain" element={<ErrorExplainer />} />
+          <Route path="/bug-prediction" element={<BugPrediction />} />
+          <Route path="/docs" element={<Documentation />} />
+          <Route path="/search" element={<CodeSearch />} />
+          <Route path="/health" element={<HealthDashboard />} />
         </Routes>
       </Layout>
     </Router>

@@ -185,21 +185,27 @@ export const bugPredictionAPI = {
   /**
    * Predict risky files in a repository
    * @param {string} repoId - Repository identifier
+   * @param {Array} filesData - Files data for analysis
    * @returns {Promise} Risk analysis and predictions
    */
-  predictRisks: async (repoId) => {
-    const response = await api.post('/api/bug-prediction/predict', { repo_id: repoId });
+  predictRisks: async (repoId, filesData) => {
+    const response = await api.post('/api/bug-prediction/analyze', { 
+      repo_id: repoId, 
+      files_data: filesData 
+    });
     return response.data;
   },
   
   /**
    * Get maintainability score for a file
    * @param {string} filePath - Path to file
+   * @param {Object} fileMetrics - File metrics
    * @returns {Promise} Maintainability metrics
    */
-  getMaintainabilityScore: async (filePath) => {
-    const response = await api.get('/api/bug-prediction/maintainability', {
-      params: { file_path: filePath }
+  getMaintainabilityScore: async (filePath, fileMetrics) => {
+    const response = await api.post('/api/bug-prediction/predict-file', {
+      file_path: filePath,
+      file_metrics: fileMetrics
     });
     return response.data;
   }
@@ -209,11 +215,13 @@ export const bugPredictionAPI = {
 export const docsAPI = {
   /**
    * Generate README for a repository
-   * @param {string} repoId - Repository identifier
+   * @param {Object} repoAnalysis - Repository analysis data
    * @returns {Promise} Generated README content
    */
-  generateReadme: async (repoId) => {
-    const response = await api.post('/api/docs/generate-readme', { repo_id: repoId });
+  generateReadme: async (repoAnalysis) => {
+    const response = await api.post('/api/docs/generate-readme', { 
+      repo_analysis: repoAnalysis 
+    });
     return response.data;
   },
   
@@ -224,19 +232,23 @@ export const docsAPI = {
    * @returns {Promise} Generated documentation
    */
   generateApiDocs: async (code, language) => {
-    const response = await api.post('/api/docs/generate-api', { code, language });
+    const response = await api.post('/api/docs/generate-api-docs', { 
+      code, 
+      language 
+    });
     return response.data;
   },
   
   /**
-   * Export documentation in different formats
-   * @param {string} content - Documentation content
-   * @param {string} format - Export format (md, html, pdf)
-   * @returns {Promise} Export URL or blob
+   * Summarize a code file
+   * @param {string} code - Source code
+   * @param {string} filePath - Path to the file
+   * @returns {Promise} Code summary
    */
-  exportDocs: async (content, format = 'md') => {
-    const response = await api.post('/api/docs/export', { content, format }, {
-      responseType: 'blob'
+  summarizeCode: async (code, filePath) => {
+    const response = await api.post('/api/docs/summarize-code', {
+      code,
+      file_path: filePath
     });
     return response.data;
   }
@@ -245,33 +257,60 @@ export const docsAPI = {
 // ==================== CODE SEARCH API (Phase 7) ====================
 export const searchAPI = {
   /**
-   * Search code semantically using natural language
-   * @param {string} query - Natural language search query
-   * @param {string} repoId - Repository to search in
-   * @returns {Promise} Search results with relevance scores
+   * Index a repository for searching
+   * @param {Object} repositoryData - Repository analysis data
+   * @returns {Promise} Indexing result
    */
-  semanticSearch: async (query, repoId) => {
-    const response = await api.post('/api/search/semantic', { query, repo_id: repoId });
+  indexRepository: async (repositoryData) => {
+    const response = await api.post('/api/search/index', { 
+      repository_data: repositoryData 
+    });
     return response.data;
   },
   
   /**
-   * Index a repository for faster searches
-   * @param {string} repoId - Repository to index
-   * @returns {Promise} Indexing status
+   * Search code semantically using natural language
+   * @param {string} query - Natural language search query
+   * @param {number} maxResults - Maximum number of results
+   * @returns {Promise} Search results with relevance scores
    */
-  indexRepository: async (repoId) => {
-    const response = await api.post('/api/search/index', { repo_id: repoId });
+  semanticSearch: async (query, maxResults = 20) => {
+    const response = await api.post('/api/search/search', { 
+      query, 
+      max_results: maxResults 
+    });
+    return response.data;
+  },
+  
+  /**
+   * Clear the search index
+   * @returns {Promise} Clear result
+   */
+  clearIndex: async () => {
+    const response = await api.post('/api/search/clear-index');
     return response.data;
   }
 };
 
 // ==================== HEALTH DASHBOARD API (Phase 8) ====================
+// ==================== HEALTH DASHBOARD API (Phase 8) ====================
 export const healthAPI = {
   /**
    * Get overall project health metrics
-   * @param {string} repoId - Repository identifier
+   * @param {Object} repositoryData - Repository analysis data
    * @returns {Promise} Health scores and metrics
+   */
+  analyzeHealth: async (repositoryData) => {
+    const response = await api.post('/api/health/analyze', { 
+      repository_data: repositoryData 
+    });
+    return response.data;
+  },
+  
+  /**
+   * Get historical metrics for repository
+   * @param {string} repoId - Repository identifier
+   * @returns {Promise} Historical metrics data
    */
   getHealthMetrics: async (repoId) => {
     const response = await api.get(`/api/health/metrics/${repoId}`);
@@ -285,6 +324,19 @@ export const healthAPI = {
    */
   getTechnicalDebt: async (repoId) => {
     const response = await api.get(`/api/health/debt/${repoId}`);
+    return response.data;
+  },
+  
+  /**
+   * Get code quality trends over time
+   * @param {string} repoId - Repository identifier
+   * @param {string} period - Time period (week, month, year)
+   * @returns {Promise} Trend data
+   */
+  getQualityTrends: async (repoId, period = 'month') => {
+    const response = await api.get(`/api/health/trends/${repoId}`, {
+      params: { period }
+    });
     return response.data;
   }
 };
@@ -310,6 +362,17 @@ export const refactorAPI = {
    */
   applyRefactor: async (code, suggestionId) => {
     const response = await api.post('/api/refactor/apply', { code, suggestion_id: suggestionId });
+    return response.data;
+  },
+  
+  /**
+   * Get complexity analysis for a file
+   * @param {string} code - Source code
+   * @param {string} language - Programming language
+   * @returns {Promise} Complexity metrics
+   */
+  analyzeComplexity: async (code, language) => {
+    const response = await api.post('/api/refactor/complexity', { code, language });
     return response.data;
   }
 };
@@ -347,6 +410,16 @@ export const dependencyAPI = {
       params: { package: packageName, version }
     });
     return response.data;
+  },
+  
+  /**
+   * Generate dependency report
+   * @param {string} repoId - Repository identifier
+   * @returns {Promise} Report data
+   */
+  generateReport: async (repoId) => {
+    const response = await api.get(`/api/dependencies/report/${repoId}`);
+    return response.data;
   }
 };
 
@@ -369,6 +442,20 @@ export const commitAPI = {
    */
   analyzeChanges: async (diff) => {
     const response = await api.post('/api/commit/analyze', { diff });
+    return response.data;
+  },
+  
+  /**
+   * Generate conventional commit message
+   * @param {string} description - Change description
+   * @param {string} type - Commit type (feat, fix, docs, etc.)
+   * @returns {Promise} Formatted commit message
+   */
+  generateConventionalCommit: async (description, type = 'feat') => {
+    const response = await api.post('/api/commit/conventional', {
+      description,
+      type
+    });
     return response.data;
   }
 };
@@ -394,6 +481,16 @@ export const prAPI = {
   getImpactAnalysis: async (repoId, branch) => {
     const response = await api.post('/api/pr/impact', { repo_id: repoId, branch });
     return response.data;
+  },
+  
+  /**
+   * Generate PR summary
+   * @param {string} prUrl - Pull request URL
+   * @returns {Promise} PR summary
+   */
+  generateSummary: async (prUrl) => {
+    const response = await api.post('/api/pr/summary', { pr_url: prUrl });
+    return response.data;
   }
 };
 
@@ -418,6 +515,16 @@ export const testAPI = {
   generateEdgeCases: async (functionCode) => {
     const response = await api.post('/api/test/edge-cases', { code: functionCode });
     return response.data;
+  },
+  
+  /**
+   * Generate mock data for testing
+   * @param {string} schema - Data schema or type
+   * @returns {Promise} Mock data
+   */
+  generateMockData: async (schema) => {
+    const response = await api.post('/api/test/mock-data', { schema });
+    return response.data;
   }
 };
 
@@ -440,6 +547,16 @@ export const graphAPI = {
    */
   getModuleRelations: async (repoId) => {
     const response = await api.get(`/api/graph/modules/${repoId}`);
+    return response.data;
+  },
+  
+  /**
+   * Get circular dependency warnings
+   * @param {string} repoId - Repository identifier
+   * @returns {Promise} Circular dependencies
+   */
+  getCircularDependencies: async (repoId) => {
+    const response = await api.get(`/api/graph/circular/${repoId}`);
     return response.data;
   }
 };
@@ -480,6 +597,16 @@ export const chatAPI = {
   newConversation: async (repoId) => {
     const response = await api.post('/api/chat/new', { repo_id: repoId });
     return response.data;
+  },
+  
+  /**
+   * Get suggested questions for repository
+   * @param {string} repoId - Repository identifier
+   * @returns {Promise} Suggested questions
+   */
+  getSuggestions: async (repoId) => {
+    const response = await api.get(`/api/chat/suggestions/${repoId}`);
+    return response.data;
   }
 };
 
@@ -513,6 +640,33 @@ export const utils = {
    */
   createAbortController: () => {
     return new AbortController();
+  },
+  
+  /**
+   * Format file size for display
+   * @param {number} bytes - File size in bytes
+   * @returns {string} Formatted file size
+   */
+  formatFileSize: (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  },
+  
+  /**
+   * Debounce function for search inputs
+   * @param {Function} func - Function to debounce
+   * @param {number} delay - Delay in milliseconds
+   * @returns {Function} Debounced function
+   */
+  debounce: (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func(...args), delay);
+    };
   }
 };
 

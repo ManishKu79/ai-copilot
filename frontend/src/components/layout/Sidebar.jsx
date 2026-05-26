@@ -3,8 +3,12 @@ import {
   LayoutDashboard, 
   FolderGit2, 
   Code2, 
-  Bug, 
-  Shield 
+  Bug,
+  TrendingUp, 
+  Shield,
+  FileText,
+  Search,
+  Activity 
 } from 'lucide-react'
 
 const navigation = [
@@ -12,6 +16,10 @@ const navigation = [
   { name: 'Repository Analysis', href: '/analysis', icon: FolderGit2 },
   { name: 'Code Review', href: '/review', icon: Code2 },
   { name: 'Error Explainer', href: '/explain', icon: Bug },
+  { name: 'Bug Prediction', href: '/bug-prediction', icon: TrendingUp }, // Add this
+  { name: 'Documentation', href: '/docs', icon: FileText },
+  { name: 'Code Search', href: '/search', icon: Search }, 
+  { name: 'Health Dashboard', href: '/health', icon: Activity },// Add this
 ]
 
 export default function Sidebar() {
