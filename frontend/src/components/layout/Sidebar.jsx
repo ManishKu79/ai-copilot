@@ -11,7 +11,8 @@ import {
   Activity,
   Scissors,
   GitBranch,
-  GitPullRequest 
+  GitPullRequest ,
+  TestTube
 } from 'lucide-react'
 
 const navigation = [
@@ -26,7 +27,8 @@ const navigation = [
   { name: 'Refactor', href: '/refactor', icon: Scissors },
   { name: 'Security Scanner', href: '/security', icon: Shield },
   { name: 'Commit Generator', href: '/commit', icon: GitBranch },
-  { name: 'PR Review', href: '/pr-review', icon: GitPullRequest }, // Add this
+  { name: 'PR Review', href: '/pr-review', icon: GitPullRequest },
+  { name: 'Test Generator', href: '/test-generator', icon: TestTube }, // Add this
 ]
 
 export default function Sidebar() {

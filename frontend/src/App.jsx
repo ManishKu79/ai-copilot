@@ -13,6 +13,7 @@ import RefactorSuggestions from './pages/RefactorSuggestions'
 import DependencyScanner from './pages/DependencyScanner'
 import CommitGenerator from './pages/CommitGenerator'
 import PRReviewAssistant from './pages/PRReviewAssistant'
+import TestGenerator from './pages/TestGenerator'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/security" element={<DependencyScanner />} />
           <Route path="/commit" element={<CommitGenerator />} />
           <Route path="/pr-review" element={<PRReviewAssistant />} />
+          <Route path="/test-generator" element={<TestGenerator />} />
         </Routes>
       </Layout>
     </Router>

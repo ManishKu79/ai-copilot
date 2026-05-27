@@ -510,30 +510,39 @@ export const testAPI = {
    * Generate unit tests for code
    * @param {string} code - Source code
    * @param {string} language - Programming language
+   * @param {string} functionName - Optional function name to test
    * @returns {Promise} Generated test code
    */
-  generateTests: async (code, language) => {
-    const response = await api.post('/api/test/generate', { code, language });
+  generateTests: async (code, language, functionName = '') => {
+    const response = await api.post('/api/test/generate', { 
+      code, 
+      language,
+      function_name: functionName
+    });
     return response.data;
   },
   
   /**
    * Generate edge cases for a function
-   * @param {string} functionCode - Function implementation
+   * @param {string} code - Source code
+   * @param {string} language - Programming language
    * @returns {Promise} Edge case test scenarios
    */
-  generateEdgeCases: async (functionCode) => {
-    const response = await api.post('/api/test/edge-cases', { code: functionCode });
+  generateEdgeCases: async (code, language) => {
+    const response = await api.post('/api/test/edge-cases', { 
+      code, 
+      language 
+    });
     return response.data;
   },
   
   /**
-   * Generate mock data for testing
-   * @param {string} schema - Data schema or type
-   * @returns {Promise} Mock data
+   * Generate API tests from endpoint definitions
+   * @param {Array} endpoints - List of API endpoints
+   * @returns {Promise} Generated API test code
    */
-  generateMockData: async (schema) => {
-    const response = await api.post('/api/test/mock-data', { schema });
+  generateApiTests: async (endpoints) => {
+    const response = await api.post('/api/test/api-tests', { endpoints });
     return response.data;
   }
 };
