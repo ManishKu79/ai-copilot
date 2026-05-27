@@ -15,6 +15,7 @@ import CommitGenerator from './pages/CommitGenerator'
 import PRReviewAssistant from './pages/PRReviewAssistant'
 import TestGenerator from './pages/TestGenerator'
 import DependencyGraph from './pages/DependencyGraph'
+import AIChat from './pages/AIChat'
 
 function App() {
   return (
@@ -36,6 +37,8 @@ function App() {
           <Route path="/pr-review" element={<PRReviewAssistant />} />
           <Route path="/test-generator" element={<TestGenerator />} />
           <Route path="/dependency-graph" element={<DependencyGraph />} />
+          <Route path="/chat" element={<AIChat />} />
+
         </Routes>
       </Layout>
     </Router>

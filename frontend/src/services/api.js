@@ -566,25 +566,26 @@ export const graphAPI = {
 };
 
 // ==================== AI CHAT API (Phase 15) ====================
+// ==================== AI CHAT API (Phase 15) ====================
 export const chatAPI = {
   /**
-   * Chat with repository context
+   * Send message to AI chat assistant
    * @param {string} message - User message
-   * @param {string} repoId - Repository identifier
-   * @param {string} conversationId - Conversation ID for context
-   * @returns {Promise} AI response with context
+   * @param {Object} repositoryData - Repository data for context
+   * @param {string} conversationId - Optional conversation ID
+   * @returns {Promise} AI response
    */
-  sendMessage: async (message, repoId, conversationId = null) => {
+  sendMessage: async (message, repositoryData, conversationId = null) => {
     const response = await api.post('/api/chat/message', {
       message,
-      repo_id: repoId,
+      repository_data: repositoryData,
       conversation_id: conversationId
     });
     return response.data;
   },
   
   /**
-   * Get chat history for a conversation
+   * Get conversation history
    * @param {string} conversationId - Conversation identifier
    * @returns {Promise} Chat history
    */
@@ -594,22 +595,12 @@ export const chatAPI = {
   },
   
   /**
-   * Clear chat context for new conversation
-   * @param {string} repoId - Repository identifier
-   * @returns {Promise} New conversation ID
-   */
-  newConversation: async (repoId) => {
-    const response = await api.post('/api/chat/new', { repo_id: repoId });
-    return response.data;
-  },
-  
-  /**
    * Get suggested questions for repository
-   * @param {string} repoId - Repository identifier
+   * @param {Object} repositoryData - Repository data
    * @returns {Promise} Suggested questions
    */
-  getSuggestions: async (repoId) => {
-    const response = await api.get(`/api/chat/suggestions/${repoId}`);
+  getSuggestions: async (repositoryData) => {
+    const response = await api.post('/api/chat/suggestions', repositoryData);
     return response.data;
   }
 };

@@ -12,7 +12,8 @@ import {
   Scissors,
   GitBranch,
   GitPullRequest ,
-  TestTube
+  TestTube,
+  MessageSquare 
 } from 'lucide-react'
 
 const navigation = [
@@ -29,7 +30,8 @@ const navigation = [
   { name: 'Commit Generator', href: '/commit', icon: GitBranch },
   { name: 'PR Review', href: '/pr-review', icon: GitPullRequest },
   { name: 'Test Generator', href: '/test-generator', icon: TestTube },
-  { name: 'Dependency Graph', href: '/dependency-graph', icon: GitBranch }, // Add this
+  { name: 'Dependency Graph', href: '/dependency-graph', icon: GitBranch },
+  { name: 'AI Chat', href: '/chat', icon: MessageSquare }, // Add this
 ]
 
 export default function Sidebar() {

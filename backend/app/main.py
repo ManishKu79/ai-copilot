@@ -5,6 +5,7 @@ from app.api.routes import pr_review
 app = FastAPI(title="AI Code Copilot API", version="0.1.0")
 from app.api.routes import test_generator
 from app.api.routes import graph
+from app.api.routes import chat
 
 
 app.add_middleware(
@@ -26,6 +27,7 @@ app.include_router(commit.router, prefix="/api/commit", tags=["commit"])
 app.include_router(pr_review.router, prefix="/api/pr", tags=["pr_review"])
 app.include_router(test_generator.router, prefix="/api/test", tags=["test"])
 app.include_router(graph.router, prefix="/api/graph", tags=["graph"])
+app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 
 @app.get("/")
 async def root():
