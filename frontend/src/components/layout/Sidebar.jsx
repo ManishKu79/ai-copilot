@@ -28,7 +28,8 @@ const navigation = [
   { name: 'Security Scanner', href: '/security', icon: Shield },
   { name: 'Commit Generator', href: '/commit', icon: GitBranch },
   { name: 'PR Review', href: '/pr-review', icon: GitPullRequest },
-  { name: 'Test Generator', href: '/test-generator', icon: TestTube }, // Add this
+  { name: 'Test Generator', href: '/test-generator', icon: TestTube },
+  { name: 'Dependency Graph', href: '/dependency-graph', icon: GitBranch }, // Add this
 ]
 
 export default function Sidebar() {

@@ -14,6 +14,7 @@ import DependencyScanner from './pages/DependencyScanner'
 import CommitGenerator from './pages/CommitGenerator'
 import PRReviewAssistant from './pages/PRReviewAssistant'
 import TestGenerator from './pages/TestGenerator'
+import DependencyGraph from './pages/DependencyGraph'
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/commit" element={<CommitGenerator />} />
           <Route path="/pr-review" element={<PRReviewAssistant />} />
           <Route path="/test-generator" element={<TestGenerator />} />
+          <Route path="/dependency-graph" element={<DependencyGraph />} />
         </Routes>
       </Layout>
     </Router>

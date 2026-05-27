@@ -4,6 +4,8 @@ from app.api.routes import analysis, review, error, search, health, refactor, de
 from app.api.routes import pr_review
 app = FastAPI(title="AI Code Copilot API", version="0.1.0")
 from app.api.routes import test_generator
+from app.api.routes import graph
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +25,7 @@ app.include_router(dependencies.router, prefix="/api/dependencies", tags=["depen
 app.include_router(commit.router, prefix="/api/commit", tags=["commit"])
 app.include_router(pr_review.router, prefix="/api/pr", tags=["pr_review"])
 app.include_router(test_generator.router, prefix="/api/test", tags=["test"])
+app.include_router(graph.router, prefix="/api/graph", tags=["graph"])
 
 @app.get("/")
 async def root():

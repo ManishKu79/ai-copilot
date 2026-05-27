@@ -549,33 +549,18 @@ export const testAPI = {
 
 // ==================== DEPENDENCY GRAPH API (Phase 14) ====================
 export const graphAPI = {
-  /**
-   * Get dependency graph for repository
-   * @param {string} repoId - Repository identifier
-   * @returns {Promise} Graph data for visualization
-   */
-  getDependencyGraph: async (repoId) => {
-    const response = await api.get(`/api/graph/dependencies/${repoId}`);
+  getDependencyGraph: async (repositoryData) => {
+    const response = await api.post('/api/graph/build', { 
+      repository_data: repositoryData 
+    });
     return response.data;
   },
   
-  /**
-   * Get module relationships
-   * @param {string} repoId - Repository identifier
-   * @returns {Promise} Module relationship data
-   */
-  getModuleRelations: async (repoId) => {
-    const response = await api.get(`/api/graph/modules/${repoId}`);
-    return response.data;
-  },
-  
-  /**
-   * Get circular dependency warnings
-   * @param {string} repoId - Repository identifier
-   * @returns {Promise} Circular dependencies
-   */
-  getCircularDependencies: async (repoId) => {
-    const response = await api.get(`/api/graph/circular/${repoId}`);
+  getModuleImpact: async (moduleName, dependencies) => {
+    const response = await api.post('/api/graph/impact', { 
+      module_name: moduleName, 
+      dependencies 
+    });
     return response.data;
   }
 };
