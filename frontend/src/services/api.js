@@ -406,6 +406,7 @@ export const dependencyAPI = {
 };
 
 // ==================== COMMIT GENERATOR API (Phase 11) ====================
+// ==================== COMMIT GENERATOR API (Phase 11) ====================
 export const commitAPI = {
   /**
    * Generate commit message from git diff
@@ -418,26 +419,32 @@ export const commitAPI = {
   },
   
   /**
-   * Analyze changes and suggest commit type
-   * @param {string} diff - Git diff content
-   * @returns {Promise} Change analysis and suggested type
+   * Generate conventional commit message from description
+   * @param {string} description - Change description
+   * @param {string} type - Commit type (feat, fix, docs, etc.)
+   * @returns {Promise} Generated commit message
    */
-  analyzeChanges: async (diff) => {
-    const response = await api.post('/api/commit/analyze', { diff });
+  generateConventionalCommit: async (description, type = 'feat') => {
+    const response = await api.post('/api/commit/generate', { description, commit_type: type });
     return response.data;
   },
   
   /**
-   * Generate conventional commit message
-   * @param {string} description - Change description
-   * @param {string} type - Commit type (feat, fix, docs, etc.)
-   * @returns {Promise} Formatted commit message
+   * Parse a commit message to extract type and description
+   * @param {string} commitMessage - Commit message to parse
+   * @returns {Promise} Parsed commit data
    */
-  generateConventionalCommit: async (description, type = 'feat') => {
-    const response = await api.post('/api/commit/conventional', {
-      description,
-      type
-    });
+  parseCommit: async (commitMessage) => {
+    const response = await api.post('/api/commit/parse', { commit_message: commitMessage });
+    return response.data;
+  },
+  
+  /**
+   * Get available commit types
+   * @returns {Promise} List of commit types
+   */
+  getCommitTypes: async () => {
+    const response = await api.get('/api/commit/types');
     return response.data;
   }
 };

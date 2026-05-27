@@ -11,7 +11,7 @@ import CodeSearch from './pages/CodeSearch'
 import HealthDashboard from './pages/HealthDashboard'
 import RefactorSuggestions from './pages/RefactorSuggestions'
 import DependencyScanner from './pages/DependencyScanner'
-
+import CommitGenerator from './pages/CommitGenerator'
 
 function App() {
   return (
@@ -29,6 +29,7 @@ function App() {
           <Route path="/health" element={<HealthDashboard />} />
           <Route path="/refactor" element={<RefactorSuggestions />} />
           <Route path="/security" element={<DependencyScanner />} />
+          <Route path="/commit" element={<CommitGenerator />} />
         </Routes>
       </Layout>
     </Router>

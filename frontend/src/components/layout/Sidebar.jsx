@@ -9,7 +9,8 @@ import {
   FileText,
   Search,
   Activity,
-  Scissors, 
+  Scissors,
+  GitBranch 
 } from 'lucide-react'
 
 const navigation = [
@@ -22,7 +23,8 @@ const navigation = [
   { name: 'Code Search', href: '/search', icon: Search }, 
   { name: 'Health Dashboard', href: '/health', icon: Activity },
   { name: 'Refactor', href: '/refactor', icon: Scissors },
-  { name: 'Security Scanner', href: '/security', icon: Shield }, // Add this
+  { name: 'Security Scanner', href: '/security', icon: Shield },
+  { name: 'Commit Generator', href: '/commit', icon: GitBranch }, // Add this
 ]
 
 export default function Sidebar() {
