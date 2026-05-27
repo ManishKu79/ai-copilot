@@ -16,6 +16,7 @@ export default function CommitGenerator() {
   const [diff, setDiff] = useState('')
   const [description, setDescription] = useState('')
   const [commitType, setCommitType] = useState('feat')
+  const [scope, setScope] = useState('')
   const [generatedMessage, setGeneratedMessage] = useState(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -31,7 +32,8 @@ export default function CommitGenerator() {
     { value: 'test', label: '✅ test', description: 'Testing' },
     { value: 'chore', label: '🔧 chore', description: 'Maintenance' },
     { value: 'ci', label: '👷 ci', description: 'CI/CD' },
-    { value: 'security', label: '🔒 security', description: 'Security' }
+    { value: 'auth', label: '🔐 auth', description: 'Authentication' },
+    { value: 'security', label: '🔒 security', description: 'Security fixes' }
   ]
 
   const handleGenerateFromDiff = async () => {
@@ -60,7 +62,12 @@ export default function CommitGenerator() {
 
     setLoading(true)
     try {
-      const result = await commitAPI.generateConventionalCommit(description, commitType)
+      let result
+      if (scope.trim()) {
+        result = await commitAPI.generateCommitWithScope(description, commitType, scope)
+      } else {
+        result = await commitAPI.generateConventionalCommit(description, commitType)
+      }
       setGeneratedMessage(result)
     } catch (error) {
       console.error('Generation failed:', error)
@@ -72,26 +79,25 @@ export default function CommitGenerator() {
 
   const handleCopy = () => {
     if (generatedMessage) {
-      const text = generatedMessage.full_message || generatedMessage.conventional_format
+      const text = generatedMessage.full_message
       navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
   }
 
-  const handleUseAsTemplate = () => {
+  const handleCopyFormat = () => {
     if (generatedMessage) {
-      const text = generatedMessage.conventional_format
-      navigator.clipboard.writeText(text)
+      navigator.clipboard.writeText(generatedMessage.conventional_format)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
   }
 
-  const exampleDiff = `diff --git a/src/app.py b/src/app.py
+  const exampleDiff = `diff --git a/src/auth/login.py b/src/auth/login.py
 index abc123..def456 100644
---- a/src/app.py
-+++ b/src/app.py
+--- a/src/auth/login.py
++++ b/src/auth/login.py
 @@ -10,6 +10,10 @@ def authenticate_user(username, password):
      if not username or not password:
          return False
@@ -102,7 +108,25 @@ index abc123..def456 100644
 +    
      user = User.query.filter_by(username=username).first()
      if user and user.check_password(password):
-         return True`
+         return True
+
+diff --git a/src/ui/LoginComponent.js b/src/ui/LoginComponent.js
+index xyz789..uvw456 100644
+--- a/src/ui/LoginComponent.js
++++ b/src/ui/LoginComponent.js
+@@ -25,6 +25,12 @@ function LoginComponent() {
+       setError('Please enter credentials');
+       return;
+     }
++    
++    // Add loading state
++    setLoading(true);
++    const result = await api.login(credentials);
++    setLoading(false);
++    
+     if (response.success) {
+       navigate('/dashboard');
+     }`
 
   return (
     <div>
@@ -186,12 +210,22 @@ index abc123..def456 100644
                 </select>
               </div>
               <div className="mb-3">
+                <label className="block text-sm font-medium mb-2">Scope (optional)</label>
+                <input
+                  type="text"
+                  value={scope}
+                  onChange={(e) => setScope(e.target.value)}
+                  placeholder="e.g., auth, api, ui, db"
+                  className="w-full bg-dark-700 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="mb-3">
                 <label className="block text-sm font-medium mb-2">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your changes..."
-                  rows={8}
+                  rows={6}
                   className="w-full bg-dark-700 rounded-md p-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
@@ -218,8 +252,15 @@ index abc123..def456 100644
             {generatedMessage && (
               <div className="flex space-x-2">
                 <button
-                  onClick={handleCopy}
+                  onClick={handleCopyFormat}
                   className="btn-secondary flex items-center text-sm"
+                >
+                  <Copy className="w-4 h-4 mr-1" />
+                  Format
+                </button>
+                <button
+                  onClick={handleCopy}
+                  className="btn-primary flex items-center text-sm"
                 >
                   {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
                   Copy All
@@ -232,7 +273,7 @@ index abc123..def456 100644
             <div className="text-center text-dark-400 py-12">
               <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Enter your changes above to generate a commit message</p>
-              <p className="text-sm mt-2">AI will analyze the diff and create a conventional commit</p>
+              <p className="text-sm mt-2">AI will analyze and create a conventional commit</p>
             </div>
           )}
 
@@ -245,38 +286,10 @@ index abc123..def456 100644
 
           {generatedMessage && !loading && (
             <div className="space-y-4">
-              {/* Commit Type Badge */}
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">{generatedMessage.emoji}</span>
-                <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-md text-sm">
-                  {generatedMessage.commit_type}
-                </span>
-                {generatedMessage.changes_summary?.impact && (
-                  <span className={`px-2 py-1 rounded-md text-sm ${
-                    generatedMessage.changes_summary.impact === 'high' ? 'bg-red-500/20 text-red-400' :
-                    generatedMessage.changes_summary.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-green-500/20 text-green-400'
-                  }`}>
-                    {generatedMessage.changes_summary.impact.toUpperCase()} Impact
-                  </span>
-                )}
-              </div>
-
-              {/* Conventional Format */}
-              <div className="bg-dark-700 rounded-lg p-3">
-                <p className="text-xs text-dark-400 mb-1">Conventional Commit Format</p>
-                <code className="text-sm font-mono text-green-400">
-                  {generatedMessage.conventional_format}
-                </code>
-              </div>
-
-              {/* Full Message */}
-              <div>
-                <p className="text-xs text-dark-400 mb-1">Full Commit Message</p>
-                <pre className="bg-dark-900 rounded-lg p-3 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
-                  {generatedMessage.full_message}
-                </pre>
-              </div>
+              {/* Preview */}
+              <pre className="bg-dark-900 rounded-lg p-4 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
+                {generatedMessage.full_message}
+              </pre>
 
               {/* Changes Summary */}
               {generatedMessage.changes_summary && (
@@ -285,32 +298,18 @@ index abc123..def456 100644
                   <div className="flex space-x-4 text-sm">
                     <span className="text-green-400">+{generatedMessage.changes_summary.additions}</span>
                     <span className="text-red-400">-{generatedMessage.changes_summary.deletions}</span>
-                    {generatedMessage.changes_summary.modified_functions?.length > 0 && (
-                      <span className="text-blue-400">
-                        {generatedMessage.changes_summary.modified_functions.length} functions
+                    {generatedMessage.changes_summary.impact && (
+                      <span className={`${
+                        generatedMessage.changes_summary.impact === 'HIGH' ? 'text-red-400' :
+                        generatedMessage.changes_summary.impact === 'MEDIUM' ? 'text-yellow-400' :
+                        'text-green-400'
+                      }`}>
+                        {generatedMessage.changes_summary.impact} IMPACT
                       </span>
                     )}
                   </div>
                 </div>
               )}
-
-              {/* Action Buttons */}
-              <div className="flex space-x-2 pt-2">
-                <button
-                  onClick={handleCopy}
-                  className="flex-1 btn-primary flex items-center justify-center"
-                >
-                  <GitBranch className="w-4 h-4 mr-2" />
-                  Copy & Use
-                </button>
-                <button
-                  onClick={handleUseAsTemplate}
-                  className="flex-1 btn-secondary flex items-center justify-center"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Format Only
-                </button>
-              </div>
             </div>
           )}
         </div>
@@ -324,8 +323,7 @@ index abc123..def456 100644
             <h3 className="text-sm font-medium mb-1">About Conventional Commits</h3>
             <p className="text-xs text-dark-300">
               Conventional Commits provide a lightweight convention for commit messages. 
-              This makes it easier to automate releases, generate changelogs, and understand 
-              the history of changes. Format: <code className="text-green-400">&lt;type&gt;: &lt;description&gt;</code>
+              Format: <code className="text-green-400">&lt;type&gt;(&lt;scope&gt;): &lt;description&gt;</code>
             </p>
           </div>
         </div>

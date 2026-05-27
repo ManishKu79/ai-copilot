@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import analysis, review, error, search, health, refactor, dependencies
-from app.api.routes import commit
+from app.api.routes import analysis, review, error, search, health, refactor, dependencies, commit
+
 app = FastAPI(title="AI Code Copilot API", version="0.1.0")
 
 app.add_middleware(

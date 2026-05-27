@@ -81,10 +81,10 @@ class CommitMessageGenerator:
         # Determine commit type and scope
         commit_type, scope = self._determine_commit_type_and_scope(changes)
         
-        # Generate subject line (clean and professional)
+        # Generate subject line
         subject = self._generate_subject(changes, commit_type, scope)
         
-        # Generate body (bullet points)
+        # Generate body
         body = self._generate_body(changes)
         
         # Generate footer
@@ -109,6 +109,147 @@ class CommitMessageGenerator:
             'changes_summary': changes
         }
     
+    def generate_simple_message(self, description: str, commit_type: str = 'feat') -> Dict:
+        """Generate a simple commit message from a description"""
+        type_info = self.commit_types.get(commit_type, self.commit_types['chore'])
+        
+        # Capitalize description
+        description = description[0].upper() + description[1:] if description else description
+        
+        # Generate bullet points based on description keywords
+        bullet_points = self._generate_bullet_points_from_description(description, commit_type)
+        body = '\n'.join(bullet_points)
+        
+        conventional = f"{commit_type}: {description}"
+        header = f"{type_info['emoji']} {conventional}"
+        
+        footer = self._generate_footer()
+        
+        return {
+            'success': True,
+            'commit_type': commit_type,
+            'scope': None,
+            'emoji': type_info['emoji'],
+            'subject': description,
+            'body': body,
+            'footer': footer,
+            'full_message': f"{header}\n\n{body}\n\n{footer}",
+            'conventional_format': conventional,
+            'changes_summary': None
+        }
+    
+    def generate_with_scope(self, description: str, commit_type: str = 'feat', scope: str = None) -> Dict:
+        """Generate commit message with scope from description"""
+        type_info = self.commit_types.get(commit_type, self.commit_types['chore'])
+        
+        # Capitalize description
+        description = description[0].upper() + description[1:] if description else description
+        
+        # Generate bullet points
+        bullet_points = self._generate_bullet_points_from_description(description, commit_type, scope)
+        body = '\n'.join(bullet_points)
+        
+        # Format with scope
+        if scope:
+            conventional = f"{commit_type}({scope}): {description}"
+            header = f"{type_info['emoji']} {conventional}"
+        else:
+            conventional = f"{commit_type}: {description}"
+            header = f"{type_info['emoji']} {conventional}"
+        
+        footer = self._generate_footer()
+        
+        return {
+            'success': True,
+            'commit_type': commit_type,
+            'scope': scope,
+            'emoji': type_info['emoji'],
+            'subject': description,
+            'body': body,
+            'footer': footer,
+            'full_message': f"{header}\n\n{body}\n\n{footer}",
+            'conventional_format': conventional,
+            'changes_summary': None
+        }
+    
+    def _generate_bullet_points_from_description(self, description: str, commit_type: str, scope: str = None) -> List[str]:
+        """Generate relevant bullet points from description"""
+        desc_lower = description.lower()
+        bullet_points = []
+        
+        # Auth-related changes
+        if 'login' in desc_lower or 'auth' in desc_lower or scope == 'auth':
+            bullet_points = [
+                "- Added backend login validation",
+                "- Added frontend login UI handling",
+                "- Improved authentication flow"
+            ]
+        # API changes
+        elif 'api' in desc_lower or 'endpoint' in desc_lower or scope == 'api':
+            bullet_points = [
+                "- Added new API endpoint",
+                "- Updated API documentation",
+                "- Added request/response validation"
+            ]
+        # Database changes
+        elif 'database' in desc_lower or 'db' in desc_lower or 'migration' in desc_lower or scope == 'db':
+            bullet_points = [
+                "- Updated database schema",
+                "- Added new migrations",
+                "- Optimized database queries"
+            ]
+        # UI/Frontend changes
+        elif 'ui' in desc_lower or 'component' in desc_lower or 'frontend' in desc_lower or scope == 'ui':
+            bullet_points = [
+                "- Added new UI components",
+                "- Improved user interface",
+                "- Enhanced responsive design"
+            ]
+        # Performance changes
+        elif 'performance' in desc_lower or 'optimize' in desc_lower or 'speed' in desc_lower:
+            bullet_points = [
+                "- Optimized code performance",
+                "- Reduced load times",
+                "- Improved caching strategy"
+            ]
+        # Bug fixes
+        elif commit_type == 'fix' or 'fix' in desc_lower or 'bug' in desc_lower:
+            bullet_points = [
+                "- Fixed identified issues",
+                "- Improved error handling",
+                "- Added edge case validation"
+            ]
+        # New features
+        elif commit_type == 'feat' or 'add' in desc_lower or 'new' in desc_lower:
+            bullet_points = [
+                f"- Implemented {description.lower()}",
+                "- Added comprehensive documentation",
+                "- Included unit tests"
+            ]
+        # Documentation
+        elif commit_type == 'docs' or 'documentation' in desc_lower:
+            bullet_points = [
+                "- Updated documentation",
+                "- Added code comments",
+                "- Improved README"
+            ]
+        # Tests
+        elif commit_type == 'test':
+            bullet_points = [
+                "- Added unit tests",
+                "- Improved test coverage",
+                "- Added edge case tests"
+            ]
+        # Default
+        else:
+            bullet_points = [
+                f"- Implemented {description.lower()}",
+                "- Made necessary code changes",
+                "- Updated relevant documentation"
+            ]
+        
+        return bullet_points
+    
     def _analyze_changes(self, diff: str, files_changed: List[str] = None) -> Dict:
         """Analyze the changes in the diff"""
         changes = {
@@ -120,30 +261,25 @@ class CommitMessageGenerator:
             'deleted_files': [],
             'modified_files': [],
             'keywords': [],
-            'impact': 'low'
+            'impact': 'LOW'
         }
         
         if not diff:
             return changes
         
         lines = diff.split('\n')
-        
-        # Track current file
         current_file = None
         
         for line in lines:
             # Track file names
             if line.startswith('+++ b/'):
-                current_file = line[6:]  # Remove '+++ b/'
+                current_file = line[6:]
                 if current_file not in changes['modified_files']:
                     changes['modified_files'].append(current_file)
-            elif line.startswith('--- a/'):
-                pass
             
             # Count additions and deletions
             elif line.startswith('+') and not line.startswith('+++'):
                 changes['additions'] += 1
-                # Extract keywords from added lines
                 words = re.findall(r'\b[a-z]{3,}\b', line.lower())
                 changes['keywords'].extend(words)
                 
@@ -152,17 +288,14 @@ class CommitMessageGenerator:
                 if func_match:
                     changes['modified_functions'].append(func_match.group(1))
                 
-                # Detect class/component definitions
                 class_match = re.search(r'class\s+(\w+)', line)
                 if class_match:
                     changes['modified_functions'].append(class_match.group(1))
                 
-                # Detect JavaScript functions
                 js_func_match = re.search(r'function\s+(\w+)\s*\(', line)
                 if js_func_match:
                     changes['modified_functions'].append(js_func_match.group(1))
                 
-                # Detect React components
                 react_match = re.search(r'const\s+(\w+)\s*=\s*\(?\)?\s*=>', line)
                 if react_match:
                     changes['modified_functions'].append(react_match.group(1))
@@ -178,10 +311,10 @@ class CommitMessageGenerator:
                 if current_file:
                     changes['deleted_files'].append(current_file)
         
-        # Remove duplicates from modified_functions
+        # Remove duplicates
         changes['modified_functions'] = list(dict.fromkeys(changes['modified_functions']))
         
-        # Determine impact based on changes
+        # Determine impact
         total_changes = changes['additions'] + changes['deletions']
         if total_changes > 200:
             changes['impact'] = 'HIGH'
@@ -189,15 +322,6 @@ class CommitMessageGenerator:
             changes['impact'] = 'MEDIUM'
         else:
             changes['impact'] = 'LOW'
-        
-        # Get top keywords
-        if changes['keywords']:
-            # Filter out common words
-            stop_words = {'the', 'and', 'for', 'with', 'this', 'that', 'from', 'are', 'was', 'were'}
-            filtered = [w for w in changes['keywords'] if w not in stop_words and len(w) > 2]
-            if filtered:
-                common = Counter(filtered).most_common(5)
-                changes['top_keywords'] = [word for word, count in common]
         
         return changes
     
@@ -213,22 +337,22 @@ class CommitMessageGenerator:
             return 'auth', 'auth'
         
         # Check for security changes
-        security_keywords = ['security', 'vulnerability', 'cve', 'encrypt', 'decrypt', 'cors', 'csrf']
+        security_keywords = ['security', 'vulnerability', 'cve', 'encrypt', 'decrypt']
         if any(kw in keywords for kw in security_keywords):
             return 'security', None
         
         # Check for performance changes
-        perf_keywords = ['performance', 'optimize', 'speed', 'fast', 'cache', 'lazy']
+        perf_keywords = ['performance', 'optimize', 'speed', 'fast', 'cache']
         if any(kw in keywords for kw in perf_keywords):
             return 'perf', None
         
         # Check for refactoring
-        refactor_keywords = ['refactor', 'clean', 'restructure', 'rename', 'move']
+        refactor_keywords = ['refactor', 'clean', 'restructure', 'rename']
         if any(kw in keywords for kw in refactor_keywords):
             return 'refactor', None
         
         # Check for bug fixes
-        fix_keywords = ['fix', 'bug', 'error', 'issue', 'crash', 'exception']
+        fix_keywords = ['fix', 'bug', 'error', 'issue', 'crash']
         if any(kw in keywords for kw in fix_keywords):
             return 'fix', None
         
@@ -238,32 +362,28 @@ class CommitMessageGenerator:
             return 'feat', None
         
         # Check for documentation
-        if any('readme' in f for f in files) or any(kw in ['doc', 'readme'] for kw in keywords):
+        if any('readme' in f for f in files):
             return 'docs', None
         
         # Check for tests
         if any('test' in f for f in files):
             return 'test', None
         
-        # Default
         return 'chore', None
     
     def _generate_subject(self, changes: Dict, commit_type: str, scope: str = None) -> str:
         """Generate a clean, professional subject line"""
         
-        # New files added
         if changes.get('new_files'):
             file_names = [f.split('/')[-1] for f in changes['new_files'][:2]]
             file_str = ', '.join(file_names)
             return f"add {file_str}"
         
-        # Deleted files
         if changes.get('deleted_files'):
             file_names = [f.split('/')[-1] for f in changes['deleted_files'][:2]]
             file_str = ', '.join(file_names)
             return f"remove {file_str}"
         
-        # Modified functions
         if changes.get('modified_functions'):
             funcs = changes['modified_functions'][:3]
             if len(funcs) == 1:
@@ -272,8 +392,7 @@ class CommitMessageGenerator:
                 func_str = ', '.join(funcs)
                 return f"update {func_str}"
         
-        # Specific keywords detection
-        keywords = changes.get('top_keywords', [])
+        keywords = changes.get('keywords', [])
         
         if 'login' in keywords or 'auth' in keywords:
             return "improve login authentication workflow"
@@ -287,13 +406,6 @@ class CommitMessageGenerator:
         if 'component' in keywords:
             return "add new UI component"
         
-        # General based on additions/deletions
-        if changes['additions'] > changes['deletions'] * 2:
-            return "add new features and improvements"
-        elif changes['deletions'] > changes['additions'] * 2:
-            return "remove deprecated code and clean up"
-        
-        # Default based on commit type
         type_messages = {
             'feat': "add new feature",
             'fix': "fix bug and improve stability",
@@ -312,23 +424,20 @@ class CommitMessageGenerator:
         """Generate clean bullet-point body"""
         body_parts = []
         
-        # Add bullet points for key changes
-        if changes['modified_functions']:
+        if changes.get('modified_functions'):
             unique_funcs = list(dict.fromkeys(changes['modified_functions']))
             for func in unique_funcs[:5]:
                 body_parts.append(f"- Added backend {func} validation")
         
-        # Add file change summaries
-        if changes['modified_files']:
+        if changes.get('modified_files'):
             for file in changes['modified_files'][:3]:
-                if 'frontend' in file or 'ui' in file or 'component' in file:
+                if 'frontend' in file or 'ui' in file:
                     body_parts.append(f"- Added frontend UI handling for {file.split('/')[-1]}")
                 elif 'api' in file or 'route' in file:
                     body_parts.append(f"- Improved API endpoint in {file.split('/')[-1]}")
                 elif 'test' in file:
                     body_parts.append(f"- Updated test coverage in {file.split('/')[-1]}")
         
-        # Add generic improvements if no specific items
         if not body_parts:
             if changes['additions'] > 0:
                 body_parts.append(f"- Added {changes['additions']} lines of new code")
@@ -337,10 +446,8 @@ class CommitMessageGenerator:
             if changes['modified_functions']:
                 body_parts.append(f"- Enhanced {', '.join(changes['modified_functions'][:3])} functions")
         
-        # Remove duplicates
         body_parts = list(dict.fromkeys(body_parts))
         
-        # Join with newlines
         return '\n'.join(body_parts) if body_parts else "- Made general improvements to codebase"
     
     def _generate_footer(self) -> str:
@@ -352,40 +459,14 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"""
         """Format the complete commit message"""
         emoji = self.commit_types.get(commit_type, self.commit_types['chore'])['emoji']
         
-        # Format header with scope
         if scope:
             header = f"{emoji} {commit_type}({scope}): {subject}"
         else:
             header = f"{emoji} {commit_type}: {subject}"
         
-        # Add changes summary
-        header = header[0].upper() + header[1:]  # Capitalize first letter
+        header = header[0].upper() + header[1:]
         
-        # Combine all parts
-        message_parts = [header, "", body, "", footer]
-        
-        return '\n'.join(message_parts)
-    
-    def generate_simple_message(self, description: str, commit_type: str = 'feat') -> Dict:
-        """Generate a simple commit message from a description"""
-        type_info = self.commit_types.get(commit_type, self.commit_types['chore'])
-        
-        # Capitalize description
-        description = description[0].upper() + description[1:] if description else description
-        
-        conventional = f"{commit_type}: {description}"
-        
-        return {
-            'success': True,
-            'commit_type': commit_type,
-            'scope': None,
-            'emoji': type_info['emoji'],
-            'subject': description,
-            'body': "- Made requested changes",
-            'footer': self._generate_footer(),
-            'full_message': f"{type_info['emoji']} {conventional}\n\n- Made requested changes\n\n{self._generate_footer()}",
-            'conventional_format': conventional
-        }
+        return f"{header}\n\n{body}\n\n{footer}"
     
     def parse_conventional_commit(self, message: str) -> Dict:
         """Parse a conventional commit message"""

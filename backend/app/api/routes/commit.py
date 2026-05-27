@@ -11,6 +11,7 @@ class CommitRequest(BaseModel):
     files_changed: Optional[List[str]] = None
     description: Optional[str] = None
     commit_type: Optional[str] = "feat"
+    scope: Optional[str] = None
 
 class ParseRequest(BaseModel):
     commit_message: str
@@ -22,7 +23,10 @@ async def generate_commit(request: CommitRequest):
         if request.diff:
             result = generator.generate_from_diff(request.diff, request.files_changed)
         elif request.description:
-            result = generator.generate_simple_message(request.description, request.commit_type)
+            if request.scope:
+                result = generator.generate_with_scope(request.description, request.commit_type, request.scope)
+            else:
+                result = generator.generate_simple_message(request.description, request.commit_type)
         else:
             raise HTTPException(status_code=400, detail="Either diff or description required")
         

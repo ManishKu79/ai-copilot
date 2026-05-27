@@ -406,7 +406,6 @@ export const dependencyAPI = {
 };
 
 // ==================== COMMIT GENERATOR API (Phase 11) ====================
-// ==================== COMMIT GENERATOR API (Phase 11) ====================
 export const commitAPI = {
   /**
    * Generate commit message from git diff
@@ -430,6 +429,22 @@ export const commitAPI = {
   },
   
   /**
+   * Generate commit message with scope
+   * @param {string} description - Change description
+   * @param {string} type - Commit type
+   * @param {string} scope - Commit scope
+   * @returns {Promise} Generated commit message
+   */
+  generateCommitWithScope: async (description, type = 'feat', scope = null) => {
+    const response = await api.post('/api/commit/generate', { 
+      description, 
+      commit_type: type, 
+      scope 
+    });
+    return response.data;
+  },
+  
+  /**
    * Parse a commit message to extract type and description
    * @param {string} commitMessage - Commit message to parse
    * @returns {Promise} Parsed commit data
@@ -445,40 +460,6 @@ export const commitAPI = {
    */
   getCommitTypes: async () => {
     const response = await api.get('/api/commit/types');
-    return response.data;
-  }
-};
-
-// ==================== PR REVIEW API (Phase 12) ====================
-export const prAPI = {
-  /**
-   * Review pull request changes
-   * @param {string} prUrl - Pull request URL
-   * @returns {Promise} PR review with comments
-   */
-  reviewPR: async (prUrl) => {
-    const response = await api.post('/api/pr/review', { pr_url: prUrl });
-    return response.data;
-  },
-  
-  /**
-   * Get impact analysis of changes
-   * @param {string} repoId - Repository identifier
-   * @param {string} branch - Branch name
-   * @returns {Promise} Impact analysis report
-   */
-  getImpactAnalysis: async (repoId, branch) => {
-    const response = await api.post('/api/pr/impact', { repo_id: repoId, branch });
-    return response.data;
-  },
-  
-  /**
-   * Generate PR summary
-   * @param {string} prUrl - Pull request URL
-   * @returns {Promise} PR summary
-   */
-  generateSummary: async (prUrl) => {
-    const response = await api.post('/api/pr/summary', { pr_url: prUrl });
     return response.data;
   }
 };
