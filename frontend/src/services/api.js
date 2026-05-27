@@ -371,11 +371,13 @@ export const refactorAPI = {
 export const dependencyAPI = {
   /**
    * Scan dependencies for vulnerabilities
-   * @param {string} repoId - Repository identifier
+   * @param {Object} repositoryData - Repository analysis data
    * @returns {Promise} Vulnerability report
    */
-  scanDependencies: async (repoId) => {
-    const response = await api.post('/api/dependencies/scan', { repo_id: repoId });
+  scanDependencies: async (repositoryData) => {
+    const response = await api.post('/api/dependencies/scan', { 
+      repository_data: repositoryData 
+    });
     return response.data;
   },
   
@@ -399,16 +401,6 @@ export const dependencyAPI = {
     const response = await api.get('/api/dependencies/advisories', {
       params: { package: packageName, version }
     });
-    return response.data;
-  },
-  
-  /**
-   * Generate dependency report
-   * @param {string} repoId - Repository identifier
-   * @returns {Promise} Report data
-   */
-  generateReport: async (repoId) => {
-    const response = await api.get(`/api/dependencies/report/${repoId}`);
     return response.data;
   }
 };

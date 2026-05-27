@@ -10,6 +10,8 @@ import Documentation from './pages/Documentation'
 import CodeSearch from './pages/CodeSearch'
 import HealthDashboard from './pages/HealthDashboard'
 import RefactorSuggestions from './pages/RefactorSuggestions'
+import DependencyScanner from './pages/DependencyScanner'
+
 
 function App() {
   return (
@@ -26,6 +28,7 @@ function App() {
           <Route path="/search" element={<CodeSearch />} />
           <Route path="/health" element={<HealthDashboard />} />
           <Route path="/refactor" element={<RefactorSuggestions />} />
+          <Route path="/security" element={<DependencyScanner />} />
         </Routes>
       </Layout>
     </Router>

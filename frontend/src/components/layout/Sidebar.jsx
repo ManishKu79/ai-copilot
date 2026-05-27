@@ -9,7 +9,7 @@ import {
   FileText,
   Search,
   Activity,
-  Scissors 
+  Scissors, 
 } from 'lucide-react'
 
 const navigation = [
@@ -21,7 +21,8 @@ const navigation = [
   { name: 'Documentation', href: '/docs', icon: FileText },
   { name: 'Code Search', href: '/search', icon: Search }, 
   { name: 'Health Dashboard', href: '/health', icon: Activity },
-  { name: 'Refactor', href: '/refactor', icon: Scissors }, // Add this
+  { name: 'Refactor', href: '/refactor', icon: Scissors },
+  { name: 'Security Scanner', href: '/security', icon: Shield }, // Add this
 ]
 
 export default function Sidebar() {
