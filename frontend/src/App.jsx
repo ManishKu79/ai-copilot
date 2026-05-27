@@ -9,6 +9,7 @@ import BugPrediction from './pages/BugPrediction'
 import Documentation from './pages/Documentation'
 import CodeSearch from './pages/CodeSearch'
 import HealthDashboard from './pages/HealthDashboard'
+import RefactorSuggestions from './pages/RefactorSuggestions'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/docs" element={<Documentation />} />
           <Route path="/search" element={<CodeSearch />} />
           <Route path="/health" element={<HealthDashboard />} />
+          <Route path="/refactor" element={<RefactorSuggestions />} />
         </Routes>
       </Layout>
     </Router>

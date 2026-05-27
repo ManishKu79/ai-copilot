@@ -342,6 +342,8 @@ export const healthAPI = {
 };
 
 // ==================== REFACTOR SUGGESTIONS API (Phase 9) ====================
+// ==================== REFACTOR SUGGESTIONS API (Phase 9) ====================
+// ==================== REFACTOR SUGGESTIONS API (Phase 9) ====================
 export const refactorAPI = {
   /**
    * Get refactoring suggestions for code
@@ -350,29 +352,17 @@ export const refactorAPI = {
    * @returns {Promise} Refactoring recommendations
    */
   getSuggestions: async (code, language) => {
-    const response = await api.post('/api/refactor/suggest', { code, language });
+    const response = await api.post('/api/refactor/analyze', { code, language });
     return response.data;
   },
   
   /**
-   * Apply a refactoring suggestion automatically
-   * @param {string} code - Original code
-   * @param {string} suggestionId - Suggestion identifier
-   * @returns {Promise} Refactored code
+   * Analyze entire repository for refactoring opportunities
+   * @param {Array} files - List of files with their data
+   * @returns {Promise} Repository refactoring analysis
    */
-  applyRefactor: async (code, suggestionId) => {
-    const response = await api.post('/api/refactor/apply', { code, suggestion_id: suggestionId });
-    return response.data;
-  },
-  
-  /**
-   * Get complexity analysis for a file
-   * @param {string} code - Source code
-   * @param {string} language - Programming language
-   * @returns {Promise} Complexity metrics
-   */
-  analyzeComplexity: async (code, language) => {
-    const response = await api.post('/api/refactor/complexity', { code, language });
+  analyzeRepository: async (files) => {
+    const response = await api.post('/api/refactor/analyze-repository', { files });
     return response.data;
   }
 };

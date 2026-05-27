@@ -8,7 +8,8 @@ import {
   Shield,
   FileText,
   Search,
-  Activity 
+  Activity,
+  Scissors 
 } from 'lucide-react'
 
 const navigation = [
@@ -19,7 +20,8 @@ const navigation = [
   { name: 'Bug Prediction', href: '/bug-prediction', icon: TrendingUp }, // Add this
   { name: 'Documentation', href: '/docs', icon: FileText },
   { name: 'Code Search', href: '/search', icon: Search }, 
-  { name: 'Health Dashboard', href: '/health', icon: Activity },// Add this
+  { name: 'Health Dashboard', href: '/health', icon: Activity },
+  { name: 'Refactor', href: '/refactor', icon: Scissors }, // Add this
 ]
 
 export default function Sidebar() {
