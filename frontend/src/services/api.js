@@ -464,6 +464,46 @@ export const commitAPI = {
   }
 };
 
+// ==================== PR REVIEW API (Phase 12) ====================
+export const prAPI = {
+  /**
+   * Review a pull request
+   * @param {string} diff - Git diff content
+   * @param {string} title - PR title
+   * @param {string} description - PR description
+   * @returns {Promise} PR review results
+   */
+  reviewPR: async (diff, title = '', description = '') => {
+    const response = await api.post('/api/pr/review', { 
+      diff, 
+      pr_title: title, 
+      pr_description: description 
+    });
+    return response.data;
+  },
+  
+  /**
+   * Get impact analysis of changes
+   * @param {string} repoId - Repository identifier
+   * @param {string} branch - Branch name
+   * @returns {Promise} Impact analysis report
+   */
+  getImpactAnalysis: async (repoId, branch) => {
+    const response = await api.post('/api/pr/impact', { repo_id: repoId, branch });
+    return response.data;
+  },
+  
+  /**
+   * Generate PR summary
+   * @param {string} diff - Git diff content
+   * @returns {Promise} PR summary
+   */
+  generateSummary: async (diff) => {
+    const response = await api.post('/api/pr/summary', { diff });
+    return response.data;
+  }
+};
+
 // ==================== TEST GENERATOR API (Phase 13) ====================
 export const testAPI = {
   /**

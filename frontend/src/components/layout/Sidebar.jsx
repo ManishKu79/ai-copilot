@@ -10,7 +10,8 @@ import {
   Search,
   Activity,
   Scissors,
-  GitBranch 
+  GitBranch,
+  GitPullRequest 
 } from 'lucide-react'
 
 const navigation = [
@@ -24,7 +25,8 @@ const navigation = [
   { name: 'Health Dashboard', href: '/health', icon: Activity },
   { name: 'Refactor', href: '/refactor', icon: Scissors },
   { name: 'Security Scanner', href: '/security', icon: Shield },
-  { name: 'Commit Generator', href: '/commit', icon: GitBranch }, // Add this
+  { name: 'Commit Generator', href: '/commit', icon: GitBranch },
+  { name: 'PR Review', href: '/pr-review', icon: GitPullRequest }, // Add this
 ]
 
 export default function Sidebar() {

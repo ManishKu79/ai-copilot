@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import analysis, review, error, search, health, refactor, dependencies, commit
-
+from app.api.routes import pr_review
 app = FastAPI(title="AI Code Copilot API", version="0.1.0")
 
 app.add_middleware(
@@ -20,6 +20,7 @@ app.include_router(health.router, prefix="/api/health", tags=["health"])
 app.include_router(refactor.router, prefix="/api/refactor", tags=["refactor"])
 app.include_router(dependencies.router, prefix="/api/dependencies", tags=["dependencies"])
 app.include_router(commit.router, prefix="/api/commit", tags=["commit"])
+app.include_router(pr_review.router, prefix="/api/pr", tags=["pr_review"])
 
 @app.get("/")
 async def root():
