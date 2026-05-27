@@ -4,11 +4,9 @@ from typing import Optional, Dict
 import tempfile
 import os
 from app.services.analyzer import RepositoryAnalyzer
-from app.services.github_service import GitHubService
 
 router = APIRouter()
 analyzer = RepositoryAnalyzer()
-github_service = GitHubService()
 
 class AnalyzeRepoRequest(BaseModel):
     repo_url: Optional[str] = None
@@ -26,7 +24,6 @@ async def analyze_upload(file: UploadFile = File(...)):
         tmp_path = tmp_file.name
     
     try:
-        # Analyze the repository
         result = analyzer.analyze_zip(tmp_path)
         return {
             "success": True,
@@ -35,37 +32,27 @@ async def analyze_upload(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
     finally:
-        # Clean up temp file
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
 
 @router.post("/github")
 async def analyze_github(request: AnalyzeRepoRequest):
-    """Analyze GitHub repository"""
+    """Analyze GitHub repository from URL"""
     if not request.repo_url:
         raise HTTPException(status_code=400, detail="GitHub URL is required")
     
-    owner, repo = github_service.parse_github_url(request.repo_url)
-    if not owner or not repo:
-        raise HTTPException(status_code=400, detail="Invalid GitHub URL")
-    
-    # Get repository info from GitHub
-    repo_info = github_service.get_repo_info(owner, repo)
-    if not repo_info:
-        raise HTTPException(status_code=404, detail="Repository not found")
-    
-    # Analyze the repository
-    analysis = analyzer.analyze_github_repo(request.repo_url)
-    
-    return {
-        "success": True,
-        "analysis": {
-            **analysis,
-            "github_info": {
-                "stars": repo_info.get('stargazers_count', 0),
-                "forks": repo_info.get('forks_count', 0),
-                "description": repo_info.get('description', ''),
-                "default_branch": repo_info.get('default_branch', 'main')
-            }
+    try:
+        result = analyzer.analyze_github_repo(request.repo_url)
+        
+        if result.get('error'):
+            raise HTTPException(status_code=404, detail=result.get('message', 'Repository not found'))
+        
+        return {
+            "success": True,
+            "analysis": result
         }
-    }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"GitHub analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"GitHub analysis failed: {str(e)}")

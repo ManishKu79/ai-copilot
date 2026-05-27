@@ -7,10 +7,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 seconds timeout for large file uploads
+  timeout: 60000, // 60 seconds timeout for large operations
 });
 
-// Request interceptor for logging (development only)
+// Request interceptor for logging
 api.interceptors.request.use(
   (config) => {
     if (import.meta.env.DEV) {
@@ -30,35 +30,27 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response) {
-      // Server responded with error status
       const errorMessage = error.response.data?.detail || error.response.data?.message || 'An error occurred';
       console.error(`[API Error] ${error.response.status}: ${errorMessage}`);
       
-      // Handle specific status codes
       switch (error.response.status) {
         case 400:
           throw new Error(errorMessage || 'Bad request');
-        case 401:
-          throw new Error('Unauthorized. Please check your credentials.');
-        case 403:
-          throw new Error('Forbidden. You don\'t have permission to access this resource.');
         case 404:
-          throw new Error('Resource not found');
+          throw new Error(errorMessage || 'Resource not found');
         case 413:
           throw new Error('File too large. Please upload a smaller file.');
         case 429:
           throw new Error('Too many requests. Please try again later.');
         case 500:
-          throw new Error('Server error. Please try again later.');
+          throw new Error(errorMessage || 'Server error. Please try again later.');
         default:
           throw new Error(errorMessage || 'Request failed');
       }
     } else if (error.request) {
-      // Request was made but no response received
       console.error('[API Error] No response received:', error.request);
       throw new Error('Unable to connect to server. Please check if the backend is running.');
     } else {
-      // Something else happened
       console.error('[API Error]', error.message);
       throw new Error(error.message || 'Request failed');
     }
@@ -96,8 +88,15 @@ export const analysisAPI = {
    * @returns {Promise} Analysis results
    */
   analyzeGithub: async (repoUrl) => {
-    const response = await api.post('/api/analysis/github', { repo_url: repoUrl });
-    return response.data;
+    try {
+      const response = await api.post('/api/analysis/github', { repo_url: repoUrl });
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        throw new Error(error.response?.data?.detail || 'Repository not found. Please check the URL and make sure the repository is public.');
+      }
+      throw error;
+    }
   },
   
   /**
@@ -120,10 +119,7 @@ export const reviewAPI = {
    * @returns {Promise} Review results with issues and suggestions
    */
   reviewCode: async (code, language = 'python') => {
-    const response = await api.post('/api/review/', { 
-      code, 
-      language 
-    });
+    const response = await api.post('/api/review/', { code, language });
     return response.data;
   },
   
@@ -138,7 +134,7 @@ export const reviewAPI = {
   },
   
   /**
-   * Get metrics for code quality over time (for dashboard)
+   * Get metrics for code quality over time
    * @param {string} repoId - Repository identifier
    * @returns {Promise} Historical metrics data
    */
@@ -180,7 +176,7 @@ export const errorAPI = {
   }
 };
 
-// ==================== BUG PREDICTION API (Phase 5) ====================
+// ==================== BUG PREDICTION API ====================
 export const bugPredictionAPI = {
   /**
    * Predict risky files in a repository
@@ -211,7 +207,7 @@ export const bugPredictionAPI = {
   }
 };
 
-// ==================== DOCUMENTATION API (Phase 6) ====================
+// ==================== DOCUMENTATION API ====================
 export const docsAPI = {
   /**
    * Generate README for a repository
@@ -254,7 +250,7 @@ export const docsAPI = {
   }
 };
 
-// ==================== CODE SEARCH API (Phase 7) ====================
+// ==================== CODE SEARCH API ====================
 export const searchAPI = {
   /**
    * Index a repository for searching
@@ -292,11 +288,10 @@ export const searchAPI = {
   }
 };
 
-// ==================== HEALTH DASHBOARD API (Phase 8) ====================
-// ==================== HEALTH DASHBOARD API (Phase 8) ====================
+// ==================== HEALTH DASHBOARD API ====================
 export const healthAPI = {
   /**
-   * Get overall project health metrics
+   * Analyze repository health
    * @param {Object} repositoryData - Repository analysis data
    * @returns {Promise} Health scores and metrics
    */
@@ -308,42 +303,17 @@ export const healthAPI = {
   },
   
   /**
-   * Get historical metrics for repository
+   * Get health metrics for a repository
    * @param {string} repoId - Repository identifier
-   * @returns {Promise} Historical metrics data
+   * @returns {Promise} Health metrics
    */
   getHealthMetrics: async (repoId) => {
     const response = await api.get(`/api/health/metrics/${repoId}`);
     return response.data;
-  },
-  
-  /**
-   * Get technical debt analysis
-   * @param {string} repoId - Repository identifier
-   * @returns {Promise} Technical debt estimation
-   */
-  getTechnicalDebt: async (repoId) => {
-    const response = await api.get(`/api/health/debt/${repoId}`);
-    return response.data;
-  },
-  
-  /**
-   * Get code quality trends over time
-   * @param {string} repoId - Repository identifier
-   * @param {string} period - Time period (week, month, year)
-   * @returns {Promise} Trend data
-   */
-  getQualityTrends: async (repoId, period = 'month') => {
-    const response = await api.get(`/api/health/trends/${repoId}`, {
-      params: { period }
-    });
-    return response.data;
   }
 };
 
-// ==================== REFACTOR SUGGESTIONS API (Phase 9) ====================
-// ==================== REFACTOR SUGGESTIONS API (Phase 9) ====================
-// ==================== REFACTOR SUGGESTIONS API (Phase 9) ====================
+// ==================== REFACTOR SUGGESTIONS API ====================
 export const refactorAPI = {
   /**
    * Get refactoring suggestions for code
@@ -367,7 +337,7 @@ export const refactorAPI = {
   }
 };
 
-// ==================== DEPENDENCY SCANNER API (Phase 10) ====================
+// ==================== DEPENDENCY SCANNER API ====================
 export const dependencyAPI = {
   /**
    * Scan dependencies for vulnerabilities
@@ -389,23 +359,10 @@ export const dependencyAPI = {
   checkOutdated: async (repoId) => {
     const response = await api.get(`/api/dependencies/outdated/${repoId}`);
     return response.data;
-  },
-  
-  /**
-   * Get security advisories for dependencies
-   * @param {string} packageName - Package name
-   * @param {string} version - Package version
-   * @returns {Promise} Security advisories
-   */
-  getAdvisories: async (packageName, version) => {
-    const response = await api.get('/api/dependencies/advisories', {
-      params: { package: packageName, version }
-    });
-    return response.data;
   }
 };
 
-// ==================== COMMIT GENERATOR API (Phase 11) ====================
+// ==================== COMMIT GENERATOR API ====================
 export const commitAPI = {
   /**
    * Generate commit message from git diff
@@ -464,7 +421,7 @@ export const commitAPI = {
   }
 };
 
-// ==================== PR REVIEW API (Phase 12) ====================
+// ==================== PR REVIEW API ====================
 export const prAPI = {
   /**
    * Review a pull request
@@ -480,31 +437,10 @@ export const prAPI = {
       pr_description: description 
     });
     return response.data;
-  },
-  
-  /**
-   * Get impact analysis of changes
-   * @param {string} repoId - Repository identifier
-   * @param {string} branch - Branch name
-   * @returns {Promise} Impact analysis report
-   */
-  getImpactAnalysis: async (repoId, branch) => {
-    const response = await api.post('/api/pr/impact', { repo_id: repoId, branch });
-    return response.data;
-  },
-  
-  /**
-   * Generate PR summary
-   * @param {string} diff - Git diff content
-   * @returns {Promise} PR summary
-   */
-  generateSummary: async (diff) => {
-    const response = await api.post('/api/pr/summary', { diff });
-    return response.data;
   }
 };
 
-// ==================== TEST GENERATOR API (Phase 13) ====================
+// ==================== TEST GENERATOR API ====================
 export const testAPI = {
   /**
    * Generate unit tests for code
@@ -534,39 +470,25 @@ export const testAPI = {
       language 
     });
     return response.data;
-  },
-  
-  /**
-   * Generate API tests from endpoint definitions
-   * @param {Array} endpoints - List of API endpoints
-   * @returns {Promise} Generated API test code
-   */
-  generateApiTests: async (endpoints) => {
-    const response = await api.post('/api/test/api-tests', { endpoints });
-    return response.data;
   }
 };
 
-// ==================== DEPENDENCY GRAPH API (Phase 14) ====================
+// ==================== DEPENDENCY GRAPH API ====================
 export const graphAPI = {
+  /**
+   * Get dependency graph for repository
+   * @param {Object} repositoryData - Repository analysis data
+   * @returns {Promise} Graph data for visualization
+   */
   getDependencyGraph: async (repositoryData) => {
     const response = await api.post('/api/graph/build', { 
       repository_data: repositoryData 
     });
     return response.data;
-  },
-  
-  getModuleImpact: async (moduleName, dependencies) => {
-    const response = await api.post('/api/graph/impact', { 
-      module_name: moduleName, 
-      dependencies 
-    });
-    return response.data;
   }
 };
 
-// ==================== AI CHAT API (Phase 15) ====================
-// ==================== AI CHAT API (Phase 15) ====================
+// ==================== AI CHAT API ====================
 export const chatAPI = {
   /**
    * Send message to AI chat assistant
@@ -627,14 +549,6 @@ export const utils = {
   getApiInfo: async () => {
     const response = await api.get('/');
     return response.data;
-  },
-  
-  /**
-   * Cancel ongoing request (useful for file uploads)
-   * @returns {AbortController} Controller for aborting requests
-   */
-  createAbortController: () => {
-    return new AbortController();
   },
   
   /**
